@@ -2,7 +2,7 @@
 
 var child_process = require('child_process');
 
-if (process.argv.length <= 3) {
+if (process.argv.length <= 2) {
     console.log("Usage " + __filename + " <command> [options]");
     process.exit(-1);
 }
@@ -30,7 +30,7 @@ switch(process.argv[2]) {
 }
 
 function handle_power_command(args) {
-    const command = args[0];
+    const command = (args[0] ? args[0] : "status");
 
     if (args.length > 1) {
 
@@ -54,8 +54,18 @@ function handle_power_command(args) {
 }
 
 function handle_sol_command(args) {
-    const command = args[0];
-    const scope = args[1];
+    var command = args[0];
+    var scope = args[1];
+
+    if (command && !scope) {
+        if (command >= 0 && command < ips.length) {
+            command = "activate";
+            scope = args[0];
+        }
+        else {
+            command = null;
+        }
+    }
 
     if (!command || !scope) {
         console.log("Please specify both a command and a scope for sol");
