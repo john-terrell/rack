@@ -31,21 +31,23 @@ switch(process.argv[2]) {
 
 function handle_power_command(args) {
     const command = args[0];
-    const scope = args[1];
 
-    if (scope) {
-        const ip = ips[scope - 1];
-        const cmd = "ipmitool -H " + ip + " -U root -E -I lanplus power " + command;
+    if (args.length > 1) {
 
-        process.stdout.write("Node: " + ip + " : ");
-        child_process.execSync(cmd, {stdio:[0,1,2]});
+        for (i = 1; i < args.length; ++i) {
+            const ip = ips[args[i] - 1];
+            const cmd = "ipmitool -H " + ip + " -U root -E -I lanplus power " + command;
+
+            process.stdout.write("[" + args[i] + "] Node: " + ip + " : ");
+            child_process.execSync(cmd, {stdio:[0,1,2]});
+        }
     }
     else {
-        for(i in ips) {
+        for(i = 0; i < ips.length; ++i) {
             const ip = ips[i];
             const cmd = "ipmitool -H " + ip + " -U root -E -I lanplus power " + command;
 
-            process.stdout.write("Node: " + ip + " : ");
+            process.stdout.write("[" + (i + 1) + "] Node: " + ip + " : ");
             child_process.execSync(cmd, {stdio:[0,1,2]});
         }
     }
