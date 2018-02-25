@@ -1,0 +1,67 @@
+#!/usr/local/bin/node
+
+var child_process = require('child_process');
+
+if (process.argv.length <= 3) {
+    console.log("Usage " + __filename + " <command> [options]");
+    process.exit(-1);
+}
+
+if (!process.env.RACK_IPS) {
+    console.log("Please ensure RACK_IPS environment variable is set to a common separated list of IPMI IP addresses.");
+    process.exit(-1);
+}
+
+const ips = process.env.RACK_IPS.split(',');
+
+if (!process.env.IPMI_PASSWORD) {
+    console.log("Please ensure IPMI_PASSWORD environment variable is set.");
+    process.exit(-1);
+}
+
+switch(process.argv[2]) {
+    case "power":
+        handle_power_command(process.argv.slice(3));
+        break;
+
+    case "sol":
+        handle_sol_command(process.argv.slice(3));
+        break;
+}
+
+function handle_power_command(args) {
+    const command = args[0];
+    const scope = args[1];
+
+    if (scope) {
+        const ip = ips[scope - 1];
+        const cmd = "ipmitool -H " + ip + " -U root -E -I lanplus power " + command;
+
+        process.stdout.write("Node: " + ip + " : ");
+        child_process.execSync(cmd, {stdio:[0,1,2]});
+    }
+    else {
+        for(i in ips) {
+            const ip = ips[i];
+            const cmd = "ipmitool -H " + ip + " -U root -E -I lanplus power " + command;
+
+            process.stdout.write("Node: " + ip + " : ");
+            child_process.execSync(cmd, {stdio:[0,1,2]});
+        }
+    }
+}
+
+function handle_sol_command(args) {
+    const command = args[0];
+    const scope = args[1];
+
+    if (!command || !scope) {
+        console.log("Please specify both a command and a scope for sol");
+        process.exit(-1);
+    }
+
+    const ip = ips[scope - 1];
+    const cmd = "ipmitool -H " + ip + " -U root -E -I lanplus sol " + command;
+
+    child_process.execSync(cmd, {stdio:[0,1,2]});
+}
